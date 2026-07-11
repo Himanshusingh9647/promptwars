@@ -105,14 +105,14 @@ async function apiCall(url, options = {}) {
  * @param {boolean} loading - Whether to show loading state.
  */
 function setButtonLoading(button, loading) {
-    const textEl = button.querySelector(".btn__text");
-    const loaderEl = button.querySelector(".btn__loader");
-
-    if (textEl && loaderEl) {
-        textEl.hidden = loading;
-        loaderEl.hidden = !loading;
+    if (loading) {
+        button.dataset.originalText = button.textContent;
+        button.textContent = "Loading...";
+    } else {
+        if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+        }
     }
-
     button.disabled = loading;
     button.setAttribute("aria-busy", String(loading));
 }
