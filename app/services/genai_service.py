@@ -137,8 +137,7 @@ class GoogleGenAIProvider:
                 generation_config={
                     "temperature": 0.7,
                     "top_p": 0.95,
-                    "max_output_tokens": 2048,
-                    "response_mime_type": "application/json",
+                    "max_output_tokens": 8192,
                 },
             )
         return self._model
