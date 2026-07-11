@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initWeatherForm();
     initTravelForm();
     initDashboardForms();
+    initNavbarLinks();
 });
 
 /* ----------------------------------------------------------------- */
@@ -40,6 +41,18 @@ function initMobileMenu() {
             menu.classList.remove("is-open");
             toggle.setAttribute("aria-expanded", "false");
             menu.setAttribute("aria-hidden", "true");
+        });
+    });
+}
+
+function initNavbarLinks() {
+    const links = document.querySelectorAll('.navbar__link');
+    links.forEach(link => {
+        link.addEventListener('click', function() {
+            // Remove active class from all links
+            links.forEach(l => l.classList.remove('navbar__link--active'));
+            // Add active class to the clicked link
+            this.classList.add('navbar__link--active');
         });
     });
 }
