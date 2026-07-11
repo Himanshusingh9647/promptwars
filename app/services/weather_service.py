@@ -57,40 +57,34 @@ def get_current_weather(location: str) -> dict[str, Any]:
     city_name = location.strip().title()
 
     try:
-        # 1. Geocode the location to get coordinates
-        geo_resp = requests.get(
-            "https://geocoding-api.open-meteo.com/v1/search",
-            params={"name": city_name, "count": 1, "language": "en", "format": "json"},
-            timeout=5,
-        )
-        geo_resp.raise_for_status()
-        geo_data = geo_resp.json()
-        
-        if not geo_data.get("results"):
-            raise ValueError(f"City '{city_name}' not found")
-            
-        lat = geo_data["results"][0]["latitude"]
-        lon = geo_data["results"][0]["longitude"]
-        resolved_name = geo_data["results"][0].get("name", city_name)
-        
-        # 2. Fetch real-time weather data
+        api_key = "48bb13e7e3e9e2cebe91641702aa624d"
         weather_resp = requests.get(
-            "https://api.open-meteo.com/v1/forecast",
+            "https://api.openweathermap.org/data/2.5/weather",
             params={
-                "latitude": lat,
-                "longitude": lon,
-                "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m",
-                "timezone": "auto"
+                "q": city_name,
+                "appid": api_key,
+                "units": "metric"
             },
             timeout=5,
         )
         weather_resp.raise_for_status()
-        current = weather_resp.json().get("current", {})
+        weather_data_resp = weather_resp.json()
         
-        temp = current.get("temperature_2m", 28)
-        humidity = current.get("relative_humidity_2m", 80)
-        precip = current.get("precipitation", 0)
-        wind = current.get("wind_speed_10m", 15)
+        resolved_name = weather_data_resp.get("name", city_name)
+        main_data = weather_data_resp.get("main", {})
+        wind_data = weather_data_resp.get("wind", {})
+        rain_data = weather_data_resp.get("rain", {})
+        weather_arr = weather_data_resp.get("weather", [{}])
+        
+        temp = main_data.get("temp", 28)
+        humidity = main_data.get("humidity", 80)
+        # OpenWeatherMap returns wind speed in m/s, convert to km/h
+        wind_mps = wind_data.get("speed", 0)
+        wind = wind_mps * 3.6
+        
+        # Precipitation in last 1 hour (mm)
+        precip = rain_data.get("1h", 0)
+        condition_desc = weather_arr[0].get("description", "Clear / Cloudy").title()
         
         # 3. Determine Risk Level based on real precipitation
         if precip > 20:
@@ -104,7 +98,7 @@ def get_current_weather(location: str) -> dict[str, Any]:
             condition = "Moderate Rain"
         else:
             risk_level = "low"
-            condition = "Clear / Cloudy"
+            condition = condition_desc
             
         weather_data = {
             "city": resolved_name,
