@@ -202,7 +202,10 @@ function initWeatherForm() {
         const location = form.querySelector("#weather-location").value.trim();
         if (!location) return;
 
+        const btn = form.querySelector("button[type='submit']");
         const resultDiv = document.getElementById("weather-result");
+        
+        setButtonLoading(btn, true);
 
         try {
             const result = await apiCall(
@@ -212,6 +215,8 @@ function initWeatherForm() {
         } catch (err) {
             resultDiv.innerHTML = `<div class="error-message" role="alert">${escapeHtml(err.message)}</div>`;
             resultDiv.hidden = false;
+        } finally {
+            setButtonLoading(btn, false);
         }
     });
 }
@@ -229,7 +234,10 @@ function initTravelForm() {
         const dest = form.querySelector("#travel-destination").value.trim();
         if (!origin || !dest) return;
 
+        const btn = form.querySelector("button[type='submit']");
         const resultDiv = document.getElementById("travel-result");
+        
+        setButtonLoading(btn, true);
 
         try {
             const result = await apiCall(
@@ -239,6 +247,8 @@ function initTravelForm() {
         } catch (err) {
             resultDiv.innerHTML = `<div class="error-message" role="alert">${escapeHtml(err.message)}</div>`;
             resultDiv.hidden = false;
+        } finally {
+            setButtonLoading(btn, false);
         }
     });
 }
