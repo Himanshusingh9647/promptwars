@@ -67,13 +67,13 @@ def travel_advisory(origin: str, destination: str) -> tuple[Response, int]:
         return jsonify({"error": exc.message, "field": exc.field}), 400
 
     try:
-        advisory: dict[str, Any] = get_travel_advisory(
-            clean_origin, clean_destination
-        )
+        advisory: dict[str, Any] = get_travel_advisory(clean_origin, clean_destination)
         return jsonify({"status": "success", "data": advisory}), 200
     except Exception as exc:
         logger.error(
             "Travel advisory error for '%s' -> '%s': %s",
-            origin, destination, exc,
+            origin,
+            destination,
+            exc,
         )
         return jsonify({"error": "Failed to generate travel advisory."}), 503

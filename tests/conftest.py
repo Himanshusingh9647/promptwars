@@ -41,6 +41,7 @@ def fixture_app() -> Generator[Flask, None, None]:
         generate_checklist,
         generate_preparedness_plan,
     )
+
     generate_preparedness_plan.cache_clear()
     generate_checklist.cache_clear()
 

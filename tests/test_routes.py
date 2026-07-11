@@ -10,66 +10,81 @@ import json
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from flask.testing import FlaskClient
-
 
 # --------------------------------------------------------------------------- #
 #  Mock Gemini Responses for Testing
 # --------------------------------------------------------------------------- #
 
-_MOCK_PLAN_RESPONSE = json.dumps({
-    "title": "Monsoon Preparedness Plan — Mumbai",
-    "risk_level": "high",
-    "sections": [
-        {"heading": "Water Safety", "items": ["Store drinking water", "Identify high ground"]},
-        {"heading": "Electrical Safety", "items": ["Install surge protectors"]},
-    ],
-    "emergency_contacts": ["NDRF: 011-24363260", "Police: 112"],
-})
+_MOCK_PLAN_RESPONSE = json.dumps(
+    {
+        "title": "Monsoon Preparedness Plan — Mumbai",
+        "risk_level": "high",
+        "sections": [
+            {
+                "heading": "Water Safety",
+                "items": ["Store drinking water", "Identify high ground"],
+            },
+            {"heading": "Electrical Safety", "items": ["Install surge protectors"]},
+        ],
+        "emergency_contacts": ["NDRF: 011-24363260", "Police: 112"],
+    }
+)
 
-_MOCK_CHECKLIST_RESPONSE = json.dumps({
-    "title": "Monsoon Emergency Checklist",
-    "categories": [
-        {
-            "name": "Essential Supplies",
-            "items": [
-                {"task": "Waterproof torch", "priority": "high", "completed": False},
-                {"task": "First aid kit", "priority": "high", "completed": False},
-            ],
-        },
-    ],
-})
+_MOCK_CHECKLIST_RESPONSE = json.dumps(
+    {
+        "title": "Monsoon Emergency Checklist",
+        "categories": [
+            {
+                "name": "Essential Supplies",
+                "items": [
+                    {
+                        "task": "Waterproof torch",
+                        "priority": "high",
+                        "completed": False,
+                    },
+                    {"task": "First aid kit", "priority": "high", "completed": False},
+                ],
+            },
+        ],
+    }
+)
 
-_MOCK_ALERT_RESPONSE = json.dumps({
-    "alert_title": "⚠️ Heavy Rainfall Warning",
-    "alert_body": "Heavy rainfall expected in the next 24 hours.",
-    "action_items": ["Stay indoors", "Move valuables to higher ground"],
-    "language": "en",
-})
+_MOCK_ALERT_RESPONSE = json.dumps(
+    {
+        "alert_title": "⚠️ Heavy Rainfall Warning",
+        "alert_body": "Heavy rainfall expected in the next 24 hours.",
+        "action_items": ["Stay indoors", "Move valuables to higher ground"],
+        "language": "en",
+    }
+)
 
-_MOCK_WEATHER_RESPONSE = json.dumps({
-    "city": "Mumbai",
-    "temperature_c": 28,
-    "humidity_percent": 89,
-    "wind_speed_kmh": 35,
-    "rainfall_mm": 120,
-    "condition": "Heavy Rain",
-    "risk_level": "high",
-    "forecast_next_24h": "Heavy rainfall expected throughout the day.",
-})
+_MOCK_WEATHER_RESPONSE = json.dumps(
+    {
+        "city": "Mumbai",
+        "temperature_c": 28,
+        "humidity_percent": 89,
+        "wind_speed_kmh": 35,
+        "rainfall_mm": 120,
+        "condition": "Heavy Rain",
+        "risk_level": "high",
+        "forecast_next_24h": "Heavy rainfall expected throughout the day.",
+    }
+)
 
-_MOCK_TRAVEL_RESPONSE = json.dumps({
-    "origin_city": "Pune",
-    "destination_city": "Mumbai",
-    "risk_score": 0.75,
-    "advisory_level": "TRAVEL WITH CAUTION",
-    "advisory_class": "high",
-    "route_conditions": "Expressway has waterlogging near Lonavala.",
-    "precautions": ["Avoid ghat section at night", "Carry emergency supplies"],
-    "origin_weather_summary": "Moderate rain",
-    "destination_weather_summary": "Heavy rain",
-})
+_MOCK_TRAVEL_RESPONSE = json.dumps(
+    {
+        "origin_city": "Pune",
+        "destination_city": "Mumbai",
+        "risk_score": 0.75,
+        "advisory_level": "TRAVEL WITH CAUTION",
+        "advisory_class": "high",
+        "route_conditions": "Expressway has waterlogging near Lonavala.",
+        "precautions": ["Avoid ghat section at night", "Carry emergency supplies"],
+        "origin_weather_summary": "Moderate rain",
+        "destination_weather_summary": "Heavy rain",
+    }
+)
 
 
 def _make_mock_provider(response: str) -> MagicMock:
@@ -82,6 +97,7 @@ def _make_mock_provider(response: str) -> MagicMock:
 # --------------------------------------------------------------------------- #
 #  Main Page Routes
 # --------------------------------------------------------------------------- #
+
 
 class TestMainRoutes:
     """Test main blueprint page routes."""
@@ -121,17 +137,17 @@ class TestMainRoutes:
 #  Preparedness API Routes
 # --------------------------------------------------------------------------- #
 
+
 class TestPreparednessRoutes:
     """Test preparedness blueprint API endpoints with mocked Gemini."""
 
     @patch("app.services.genai_service.get_genai_provider")
-    def test_create_plan_success(
-        self, mock_fn: MagicMock, client: FlaskClient
-    ) -> None:
+    def test_create_plan_success(self, mock_fn: MagicMock, client: FlaskClient) -> None:
         """Valid plan request should return 200 with AI-generated plan."""
         mock_fn.return_value = _make_mock_provider(_MOCK_PLAN_RESPONSE)
         # Clear lru_cache to ensure fresh call
         from app.services.genai_service import generate_preparedness_plan
+
         generate_preparedness_plan.cache_clear()
 
         response = client.post(
@@ -200,6 +216,7 @@ class TestPreparednessRoutes:
         """Valid checklist request should return 200 with categories."""
         mock_fn.return_value = _make_mock_provider(_MOCK_CHECKLIST_RESPONSE)
         from app.services.genai_service import generate_checklist
+
         generate_checklist.cache_clear()
 
         response = client.post(
@@ -264,6 +281,7 @@ class TestPreparednessRoutes:
         """Omitting language should default to 'en'."""
         mock_fn.return_value = _make_mock_provider(_MOCK_PLAN_RESPONSE)
         from app.services.genai_service import generate_preparedness_plan
+
         generate_preparedness_plan.cache_clear()
 
         response = client.post(
@@ -277,6 +295,7 @@ class TestPreparednessRoutes:
 #  Weather API Routes
 # --------------------------------------------------------------------------- #
 
+
 class TestWeatherRoutes:
     """Test weather blueprint API endpoints with mocked Gemini."""
 
@@ -287,6 +306,7 @@ class TestWeatherRoutes:
         """Known city should return AI-generated weather data."""
         mock_fn.return_value = _make_mock_provider(_MOCK_WEATHER_RESPONSE)
         from app.services.weather_service import get_current_weather
+
         if hasattr(get_current_weather, "cache"):
             get_current_weather.cache.clear()  # type: ignore[attr-defined]
 
@@ -307,6 +327,7 @@ class TestWeatherRoutes:
             '"risk_level":"low","forecast_next_24h":"Light showers expected."}'
         )
         from app.services.weather_service import get_current_weather
+
         if hasattr(get_current_weather, "cache"):
             get_current_weather.cache.clear()  # type: ignore[attr-defined]
 
@@ -327,6 +348,7 @@ class TestWeatherRoutes:
         """Travel advisory should return composite risk data."""
         mock_fn.return_value = _make_mock_provider(_MOCK_TRAVEL_RESPONSE)
         from app.services.weather_service import get_travel_advisory
+
         if hasattr(get_travel_advisory, "cache"):
             get_travel_advisory.cache.clear()  # type: ignore[attr-defined]
 

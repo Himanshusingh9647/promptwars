@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 #  JSON Extraction Utility
 # --------------------------------------------------------------------------- #
 
+
 def extract_json_from_response(raw_text: str) -> dict[str, Any]:
     """
     Extract and parse JSON from an LLM response.
@@ -85,6 +86,7 @@ def extract_json_from_response(raw_text: str) -> dict[str, Any]:
 #  Provider Protocol
 # --------------------------------------------------------------------------- #
 
+
 class GenAIProvider(Protocol):
     """Protocol defining the interface every LLM provider must satisfy."""
 
@@ -104,6 +106,7 @@ class GenAIProvider(Protocol):
 # --------------------------------------------------------------------------- #
 #  Google Gemini Provider (REAL API CALLS)
 # --------------------------------------------------------------------------- #
+
 
 class GoogleGenAIProvider:
     """
@@ -159,6 +162,7 @@ class GoogleGenAIProvider:
 # --------------------------------------------------------------------------- #
 #  Mock Provider (ONLY for automated testing — not used in production)
 # --------------------------------------------------------------------------- #
+
 
 class MockGenAIProvider:
     """
@@ -224,8 +228,16 @@ class MockGenAIProvider:
                 {
                     "name": "Essential Supplies",
                     "items": [
-                        {"task": "Waterproof torch with extra batteries", "priority": "high", "completed": False},
-                        {"task": "First aid kit (fully stocked)", "priority": "high", "completed": False},
+                        {
+                            "task": "Waterproof torch with extra batteries",
+                            "priority": "high",
+                            "completed": False,
+                        },
+                        {
+                            "task": "First aid kit (fully stocked)",
+                            "priority": "high",
+                            "completed": False,
+                        },
                     ],
                 },
             ],
@@ -285,6 +297,7 @@ def get_genai_provider(provider_name: Optional[str] = None) -> GenAIProvider:
 # --------------------------------------------------------------------------- #
 #  High-Level Service Functions (with caching)
 # --------------------------------------------------------------------------- #
+
 
 @lru_cache(maxsize=64)
 def generate_preparedness_plan(
@@ -376,7 +389,9 @@ def generate_checklist(
             "categories": [
                 {
                     "name": "AI-Generated Items",
-                    "items": [{"task": raw_response, "priority": "high", "completed": False}],
+                    "items": [
+                        {"task": raw_response, "priority": "high", "completed": False}
+                    ],
                 }
             ],
         }

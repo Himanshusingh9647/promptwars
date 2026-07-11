@@ -5,10 +5,8 @@ Validates that the app factory correctly creates Flask instances
 with proper configuration, blueprint registration, and error handling.
 """
 
-import pytest
 from flask import Flask
 
-from app import create_app
 from app.config import DevelopmentConfig, ProductionConfig, TestingConfig, get_config
 
 

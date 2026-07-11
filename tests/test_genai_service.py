@@ -132,17 +132,22 @@ class TestGeneratePlan:
     def test_generate_plan_returns_dict(self, mock_fn: MagicMock) -> None:
         """Plan generation should return a parsed dictionary."""
         mock_provider = MagicMock()
-        mock_provider.generate.return_value = json.dumps({
-            "title": "Test Plan", "risk_level": "high",
-            "sections": [{"heading": "Test", "items": ["Item 1"]}],
-            "emergency_contacts": ["112"],
-        })
+        mock_provider.generate.return_value = json.dumps(
+            {
+                "title": "Test Plan",
+                "risk_level": "high",
+                "sections": [{"heading": "Test", "items": ["Item 1"]}],
+                "emergency_contacts": ["112"],
+            }
+        )
         mock_fn.return_value = mock_provider
         generate_preparedness_plan.cache_clear()
 
         result = generate_preparedness_plan(
-            location="Mumbai", family_size=4,
-            special_needs="None", language="en",
+            location="Mumbai",
+            family_size=4,
+            special_needs="None",
+            language="en",
         )
         assert isinstance(result, dict)
         assert "title" in result
@@ -153,19 +158,27 @@ class TestGeneratePlan:
 
         with patch("app.services.genai_service.get_genai_provider") as mock_fn:
             mock_provider = MagicMock()
-            mock_provider.generate.return_value = json.dumps({
-                "title": "Cache Test", "risk_level": "low",
-                "sections": [], "emergency_contacts": [],
-            })
+            mock_provider.generate.return_value = json.dumps(
+                {
+                    "title": "Cache Test",
+                    "risk_level": "low",
+                    "sections": [],
+                    "emergency_contacts": [],
+                }
+            )
             mock_fn.return_value = mock_provider
 
             result1 = generate_preparedness_plan(
-                location="CacheCity", family_size=3,
-                special_needs="None", language="en",
+                location="CacheCity",
+                family_size=3,
+                special_needs="None",
+                language="en",
             )
             result2 = generate_preparedness_plan(
-                location="CacheCity", family_size=3,
-                special_needs="None", language="en",
+                location="CacheCity",
+                family_size=3,
+                special_needs="None",
+                language="en",
             )
 
             assert result1 == result2
@@ -180,18 +193,27 @@ class TestGenerateChecklist:
     def test_generate_checklist_returns_dict(self, mock_fn: MagicMock) -> None:
         """Checklist generation should return parsed dict with categories."""
         mock_provider = MagicMock()
-        mock_provider.generate.return_value = json.dumps({
-            "title": "Test Checklist",
-            "categories": [{"name": "Supplies", "items": [
-                {"task": "Torch", "priority": "high", "completed": False},
-            ]}],
-        })
+        mock_provider.generate.return_value = json.dumps(
+            {
+                "title": "Test Checklist",
+                "categories": [
+                    {
+                        "name": "Supplies",
+                        "items": [
+                            {"task": "Torch", "priority": "high", "completed": False},
+                        ],
+                    }
+                ],
+            }
+        )
         mock_fn.return_value = mock_provider
         generate_checklist.cache_clear()
 
         result = generate_checklist(
-            location="Chennai", family_size=5,
-            special_needs="Elderly", language="en",
+            location="Chennai",
+            family_size=5,
+            special_needs="Elderly",
+            language="en",
         )
         assert isinstance(result, dict)
         assert "categories" in result
@@ -204,17 +226,21 @@ class TestGenerateAlert:
     def test_generate_alert_returns_dict(self, mock_fn: MagicMock) -> None:
         """Alert generation should return parsed dict."""
         mock_provider = MagicMock()
-        mock_provider.generate.return_value = json.dumps({
-            "alert_title": "Test Alert",
-            "alert_body": "Test body",
-            "action_items": ["Action 1"],
-            "language": "en",
-        })
+        mock_provider.generate.return_value = json.dumps(
+            {
+                "alert_title": "Test Alert",
+                "alert_body": "Test body",
+                "action_items": ["Action 1"],
+                "language": "en",
+            }
+        )
         mock_fn.return_value = mock_provider
 
         result = generate_alert(
-            location="Mumbai", condition="Heavy Rain",
-            risk_level="high", language="en",
+            location="Mumbai",
+            condition="Heavy Rain",
+            risk_level="high",
+            language="en",
         )
         assert isinstance(result, dict)
         assert "alert_title" in result

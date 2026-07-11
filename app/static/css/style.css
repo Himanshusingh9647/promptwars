@@ -151,11 +151,11 @@ ul {
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-pill);
-    padding: 4px;
+    padding: 6px;
 }
 
 .navbar__link {
-    padding: 8px 20px;
+    padding: 12px 24px;
     border-radius: var(--radius-pill);
     font-size: 0.95rem;
     font-weight: 500;
@@ -187,7 +187,7 @@ ul {
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    padding: 8px 24px;
+    padding: 12px 28px;
     border-radius: var(--radius-pill);
     font-weight: 500;
     font-size: 0.95rem;
@@ -228,14 +228,16 @@ ul {
     max-width: 900px;
     margin: 0 auto var(--space-md);
     text-wrap: balance;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
 .hero__subtitle {
     font-size: clamp(1.1rem, 2vw, 1.3rem);
     font-weight: 400;
-    opacity: 0.9;
+    opacity: 0.95;
     max-width: 600px;
     margin: 0 auto var(--space-xl);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .hero__actions {

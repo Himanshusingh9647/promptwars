@@ -9,10 +9,7 @@ The production app makes real Gemini calls.
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from app.services.weather_service import get_current_weather, get_travel_advisory
-
 
 # --------------------------------------------------------------------------- #
 #  Mock Gemini response fixtures
@@ -85,7 +82,9 @@ class TestCurrentWeather:
     def test_normalizes_invalid_risk_level(self, mock_provider_fn: MagicMock) -> None:
         """Invalid risk_level from Gemini should be normalized to 'moderate'."""
         mock_provider = MagicMock()
-        mock_provider.generate.return_value = '{"city":"Test","risk_level":"extreme","temperature_c":30}'
+        mock_provider.generate.return_value = (
+            '{"city":"Test","risk_level":"extreme","temperature_c":30}'
+        )
         mock_provider_fn.return_value = mock_provider
 
         data = get_current_weather("TestCity")
@@ -161,8 +160,10 @@ class TestTravelAdvisory:
         mock_provider_fn.return_value = mock_provider
 
         valid_levels = {
-            "SAFE TO TRAVEL", "MODERATE RISK",
-            "TRAVEL WITH CAUTION", "DO NOT TRAVEL",
+            "SAFE TO TRAVEL",
+            "MODERATE RISK",
+            "TRAVEL WITH CAUTION",
+            "DO NOT TRAVEL",
         }
         data = get_travel_advisory("Pune", "Mumbai")
         assert data["advisory_level"] in valid_levels

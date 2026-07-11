@@ -36,7 +36,9 @@ class ValidationError(Exception):
 #  Prompt Injection Patterns
 # --------------------------------------------------------------------------- #
 _INJECTION_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"ignore\s+(all\s+)?(previous|above|prior)\s+instructions", re.IGNORECASE),
+    re.compile(
+        r"ignore\s+(all\s+)?(previous|above|prior)\s+instructions", re.IGNORECASE
+    ),
     re.compile(r"disregard\s+(all\s+)?(previous|above|prior)", re.IGNORECASE),
     re.compile(r"you\s+are\s+now\s+a", re.IGNORECASE),
     re.compile(r"act\s+as\s+(if\s+you\s+are|a)", re.IGNORECASE),

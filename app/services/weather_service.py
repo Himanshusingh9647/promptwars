@@ -37,6 +37,7 @@ _TRAVEL_RISK_FACTORS: dict[str, float] = {
 #  Service Functions — Real Gemini API Calls
 # --------------------------------------------------------------------------- #
 
+
 @ttl_cache(ttl=300, max_size=64)
 def get_current_weather(location: str) -> dict[str, Any]:
     """
@@ -123,7 +124,9 @@ def get_travel_advisory(origin: str, destination: str) -> dict[str, Any]:
     except (RuntimeError, json.JSONDecodeError) as exc:
         logger.error(
             "Travel advisory failed for '%s' -> '%s': %s",
-            origin, destination, exc,
+            origin,
+            destination,
+            exc,
         )
         # Fallback with real weather lookups for each city
         origin_weather = get_current_weather(origin)
@@ -153,9 +156,7 @@ def get_travel_advisory(origin: str, destination: str) -> dict[str, Any]:
                 "Keep emergency contacts saved offline",
                 "Avoid waterlogged roads and low-lying areas",
             ],
-            "origin_weather_summary": origin_weather.get(
-                "condition", "Monsoon active"
-            ),
+            "origin_weather_summary": origin_weather.get("condition", "Monsoon active"),
             "destination_weather_summary": dest_weather.get(
                 "condition", "Monsoon active"
             ),
@@ -168,7 +169,12 @@ def get_travel_advisory(origin: str, destination: str) -> dict[str, Any]:
     advisory_data.setdefault("advisory_level", "TRAVEL WITH CAUTION")
     advisory_data.setdefault("precautions", [])
 
-    valid_levels = {"SAFE TO TRAVEL", "MODERATE RISK", "TRAVEL WITH CAUTION", "DO NOT TRAVEL"}
+    valid_levels = {
+        "SAFE TO TRAVEL",
+        "MODERATE RISK",
+        "TRAVEL WITH CAUTION",
+        "DO NOT TRAVEL",
+    }
     if advisory_data.get("advisory_level") not in valid_levels:
         advisory_data["advisory_level"] = "TRAVEL WITH CAUTION"
 
