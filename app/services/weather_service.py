@@ -8,6 +8,7 @@ generated — no hardcoded or mock data in production.
 
 import json
 import logging
+import requests
 from typing import Any
 
 from app.services.cache_service import ttl_cache
@@ -53,25 +54,85 @@ def get_current_weather(location: str) -> dict[str, Any]:
     Returns:
         Dictionary with AI-generated weather information and risk data.
     """
-    prompt: str = WEATHER_ASSESSMENT_PROMPT.format(location=location.strip().title())
+    city_name = location.strip().title()
 
     try:
-        provider = get_genai_provider()
-        raw_response: str = provider.generate(prompt)
-        weather_data: dict[str, Any] = extract_json_from_response(raw_response)
-    except (RuntimeError, json.JSONDecodeError) as exc:
-        logger.error("Weather assessment failed for '%s': %s", location, exc)
+        # 1. Geocode the location to get coordinates
+        geo_resp = requests.get(
+            "https://geocoding-api.open-meteo.com/v1/search",
+            params={"name": city_name, "count": 1, "language": "en", "format": "json"},
+            timeout=5,
+        )
+        geo_resp.raise_for_status()
+        geo_data = geo_resp.json()
+        
+        if not geo_data.get("results"):
+            raise ValueError(f"City '{city_name}' not found")
+            
+        lat = geo_data["results"][0]["latitude"]
+        lon = geo_data["results"][0]["longitude"]
+        resolved_name = geo_data["results"][0].get("name", city_name)
+        
+        # 2. Fetch real-time weather data
+        weather_resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "current": "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m",
+                "timezone": "auto"
+            },
+            timeout=5,
+        )
+        weather_resp.raise_for_status()
+        current = weather_resp.json().get("current", {})
+        
+        temp = current.get("temperature_2m", 28)
+        humidity = current.get("relative_humidity_2m", 80)
+        precip = current.get("precipitation", 0)
+        wind = current.get("wind_speed_10m", 15)
+        
+        # 3. Determine Risk Level based on real precipitation
+        if precip > 20:
+            risk_level = "severe"
+            condition = "Severe Heavy Rain"
+        elif precip > 10:
+            risk_level = "high"
+            condition = "Heavy Rain"
+        elif precip > 2:
+            risk_level = "moderate"
+            condition = "Moderate Rain"
+        else:
+            risk_level = "low"
+            condition = "Clear / Cloudy"
+            
+        weather_data = {
+            "city": resolved_name,
+            "temperature_c": round(temp, 1),
+            "humidity_percent": round(humidity),
+            "wind_speed_kmh": round(wind, 1),
+            "rainfall_mm": round(precip, 1),
+            "condition": condition,
+            "risk_level": risk_level,
+            "forecast_next_24h": (
+                f"Current live temperature is {temp}°C with {humidity}% humidity. "
+                f"Recent precipitation is {precip}mm. Stay prepared based on the real-time risk level."
+            ),
+        }
+
+    except Exception as exc:
+        logger.error("Weather API failed for '%s': %s", location, exc)
         # Fallback: return a minimal valid structure so the UI doesn't break
         weather_data = {
-            "city": location.strip().title(),
+            "city": city_name,
             "temperature_c": 28,
             "humidity_percent": 80,
             "wind_speed_kmh": 20,
             "rainfall_mm": 50,
-            "condition": "Monsoon Season Active",
+            "condition": "Monsoon Season Active (Fallback Data)",
             "risk_level": "moderate",
             "forecast_next_24h": (
-                f"Unable to fetch live assessment for {location.title()}. "
+                f"Unable to fetch live API assessment for {city_name}. "
                 "General monsoon conditions are active across the region. "
                 "Please check local weather bulletins for the latest updates."
             ),
