@@ -1,0 +1,428 @@
+"""
+Abstracted GenAI service with pluggable LLM providers.
+
+Uses the Protocol pattern so any LLM backend (Google Gemini, OpenAI,
+Anthropic, etc.) can be swapped in by setting the GENAI_PROVIDER
+environment variable. A ``MockGenAIProvider`` is included strictly
+for automated testing — production always uses real API calls.
+"""
+
+import json
+import logging
+import os
+import re
+from functools import lru_cache
+from typing import Any, Optional, Protocol
+
+from app.utils.constants import (
+    CHECKLIST_PROMPT,
+    LANGUAGE_MAP,
+    MULTILINGUAL_ALERT_PROMPT,
+    PREPAREDNESS_PLAN_PROMPT,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# --------------------------------------------------------------------------- #
+#  JSON Extraction Utility
+# --------------------------------------------------------------------------- #
+
+def extract_json_from_response(raw_text: str) -> dict[str, Any]:
+    """
+    Extract and parse JSON from an LLM response.
+
+    Real LLMs (Gemini, GPT, etc.) often wrap JSON in markdown code
+    fences like ```json ... ```. This function handles all common
+    wrapping patterns.
+
+    Args:
+        raw_text: Raw text response from the LLM.
+
+    Returns:
+        Parsed dictionary from the JSON content.
+
+    Raises:
+        json.JSONDecodeError: If no valid JSON can be extracted.
+    """
+    text = raw_text.strip()
+
+    # Attempt 1: Direct JSON parse
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Attempt 2: Extract from ```json ... ``` code blocks
+    code_block_match = re.search(
+        r"```(?:json)?\s*\n?(.*?)\n?\s*```",
+        text,
+        re.DOTALL,
+    )
+    if code_block_match:
+        try:
+            return json.loads(code_block_match.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+
+    # Attempt 3: Find the first { ... } or [ ... ] block
+    brace_match = re.search(r"\{.*\}", text, re.DOTALL)
+    if brace_match:
+        try:
+            return json.loads(brace_match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    # If all parsing attempts fail, raise
+    raise json.JSONDecodeError(
+        "Could not extract valid JSON from LLM response",
+        text,
+        0,
+    )
+
+
+# --------------------------------------------------------------------------- #
+#  Provider Protocol
+# --------------------------------------------------------------------------- #
+
+class GenAIProvider(Protocol):
+    """Protocol defining the interface every LLM provider must satisfy."""
+
+    def generate(self, prompt: str) -> str:
+        """
+        Send a prompt to the LLM and return the raw text response.
+
+        Args:
+            prompt: The formatted prompt string.
+
+        Returns:
+            Raw text response from the LLM.
+        """
+        ...
+
+
+# --------------------------------------------------------------------------- #
+#  Google Gemini Provider (REAL API CALLS)
+# --------------------------------------------------------------------------- #
+
+class GoogleGenAIProvider:
+    """
+    Google Generative AI (Gemini) provider.
+
+    Makes real API calls to Google's Gemini model. Requires the
+    ``GENAI_API_KEY`` environment variable to be set.
+    """
+
+    def __init__(self, api_key: Optional[str] = None) -> None:
+        self.api_key: str = api_key or os.environ.get("GENAI_API_KEY", "")
+        if not self.api_key:
+            logger.warning(
+                "GENAI_API_KEY not set. GoogleGenAIProvider will fail on calls."
+            )
+        self._model: Optional[Any] = None
+
+    def _get_model(self) -> Any:
+        """Lazy-initialize the Gemini model."""
+        if self._model is None:
+            import google.generativeai as genai  # type: ignore[import-untyped]
+
+            genai.configure(api_key=self.api_key)
+            self._model = genai.GenerativeModel(
+                "gemini-3.5-flash",
+                generation_config={
+                    "temperature": 0.7,
+                    "top_p": 0.95,
+                    "max_output_tokens": 2048,
+                },
+            )
+        return self._model
+
+    def generate(self, prompt: str) -> str:
+        """
+        Generate content using Google Gemini (real API call).
+
+        Args:
+            prompt: The formatted prompt string.
+
+        Returns:
+            Text response from Gemini.
+        """
+        try:
+            model = self._get_model()
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception as exc:
+            logger.error("Gemini API error: %s", exc)
+            raise RuntimeError(f"GenAI generation failed: {exc}") from exc
+
+
+# --------------------------------------------------------------------------- #
+#  Mock Provider (ONLY for automated testing — not used in production)
+# --------------------------------------------------------------------------- #
+
+class MockGenAIProvider:
+    """
+    Mock provider returning realistic pre-built responses.
+
+    Used ONLY for automated pytest runs so tests don't require
+    network calls. The production app ALWAYS uses GoogleGenAIProvider.
+    """
+
+    def generate(self, prompt: str) -> str:
+        """
+        Return a mock response based on prompt content analysis.
+
+        Args:
+            prompt: The formatted prompt string.
+
+        Returns:
+            JSON string with mock monsoon preparedness data.
+        """
+        if "checklist" in prompt.lower():
+            return json.dumps(self._mock_checklist())
+        elif "alert" in prompt.lower():
+            return json.dumps(self._mock_alert())
+        else:
+            return json.dumps(self._mock_plan())
+
+    @staticmethod
+    def _mock_plan() -> dict[str, Any]:
+        """Generate a mock preparedness plan."""
+        return {
+            "title": "Monsoon Preparedness Plan — Mumbai",
+            "risk_level": "high",
+            "sections": [
+                {
+                    "heading": "Water Safety",
+                    "items": [
+                        "Store 4 litres of drinking water per person per day",
+                        "Install water purification tablets in emergency kit",
+                        "Identify elevated ground near your home",
+                    ],
+                },
+                {
+                    "heading": "Electrical Safety",
+                    "items": [
+                        "Install surge protectors on all major appliances",
+                        "Keep emergency torch and batteries accessible",
+                        "Avoid using electrical equipment during lightning",
+                    ],
+                },
+            ],
+            "emergency_contacts": [
+                "NDRF Helpline: 011-24363260",
+                "Police Emergency: 112",
+            ],
+        }
+
+    @staticmethod
+    def _mock_checklist() -> dict[str, Any]:
+        """Generate a mock emergency checklist."""
+        return {
+            "title": "Monsoon Emergency Checklist",
+            "categories": [
+                {
+                    "name": "Essential Supplies",
+                    "items": [
+                        {"task": "Waterproof torch with extra batteries", "priority": "high", "completed": False},
+                        {"task": "First aid kit (fully stocked)", "priority": "high", "completed": False},
+                    ],
+                },
+            ],
+        }
+
+    @staticmethod
+    def _mock_alert() -> dict[str, Any]:
+        """Generate a mock multilingual alert."""
+        return {
+            "alert_title": "⚠️ Heavy Rainfall Warning",
+            "alert_body": "Heavy rainfall is expected in your area over the next 24 hours.",
+            "action_items": [
+                "Stay indoors and avoid unnecessary travel",
+                "Move valuables to higher ground",
+            ],
+            "language": "en",
+        }
+
+
+# --------------------------------------------------------------------------- #
+#  Provider Factory
+# --------------------------------------------------------------------------- #
+
+_PROVIDERS: dict[str, type] = {
+    "google": GoogleGenAIProvider,
+    "mock": MockGenAIProvider,
+}
+
+
+def get_genai_provider(provider_name: Optional[str] = None) -> GenAIProvider:
+    """
+    Factory function to instantiate the configured GenAI provider.
+
+    Args:
+        provider_name: Provider key ('google', 'mock'). Defaults to
+                       the ``GENAI_PROVIDER`` environment variable.
+
+    Returns:
+        An instance satisfying the ``GenAIProvider`` protocol.
+
+    Raises:
+        ValueError: If the requested provider is not registered.
+    """
+    if provider_name is None:
+        provider_name = os.environ.get("GENAI_PROVIDER", "google")
+
+    provider_class = _PROVIDERS.get(provider_name)
+    if provider_class is None:
+        available = ", ".join(sorted(_PROVIDERS.keys()))
+        raise ValueError(
+            f"Unknown GenAI provider '{provider_name}'. Available: {available}"
+        )
+
+    return provider_class()
+
+
+# --------------------------------------------------------------------------- #
+#  High-Level Service Functions (with caching)
+# --------------------------------------------------------------------------- #
+
+@lru_cache(maxsize=64)
+def generate_preparedness_plan(
+    location: str,
+    family_size: int,
+    special_needs: str,
+    language: str,
+    provider_name: Optional[str] = None,
+) -> dict[str, Any]:
+    """
+    Generate a personalized monsoon preparedness plan via real Gemini API.
+
+    Results are cached by input arguments to avoid redundant API calls
+    for identical requests.
+
+    Args:
+        location: User's city or region.
+        family_size: Number of family members.
+        special_needs: Description of special requirements.
+        language: ISO language code.
+        provider_name: Override the default provider.
+
+    Returns:
+        Parsed dictionary with the preparedness plan.
+    """
+    language_name: str = LANGUAGE_MAP.get(language, "English")
+    prompt: str = PREPAREDNESS_PLAN_PROMPT.format(
+        location=location,
+        family_size=family_size,
+        special_needs=special_needs,
+        language=language,
+        language_name=language_name,
+    )
+
+    provider: GenAIProvider = get_genai_provider(provider_name)
+    raw_response: str = provider.generate(prompt)
+
+    try:
+        return extract_json_from_response(raw_response)
+    except json.JSONDecodeError:
+        logger.warning("GenAI returned unparseable response; wrapping as text.")
+        return {
+            "title": f"Preparedness Plan for {location}",
+            "risk_level": "moderate",
+            "sections": [{"heading": "AI-Generated Guidance", "items": [raw_response]}],
+            "emergency_contacts": ["NDRF Helpline: 011-24363260", "Police: 112"],
+        }
+
+
+@lru_cache(maxsize=64)
+def generate_checklist(
+    location: str,
+    family_size: int,
+    special_needs: str,
+    language: str,
+    provider_name: Optional[str] = None,
+) -> dict[str, Any]:
+    """
+    Generate an emergency checklist via real Gemini API.
+
+    Args:
+        location: User's city or region.
+        family_size: Number of family members.
+        special_needs: Description of special requirements.
+        language: ISO language code.
+        provider_name: Override the default provider.
+
+    Returns:
+        Parsed dictionary with categorised checklist items.
+    """
+    language_name: str = LANGUAGE_MAP.get(language, "English")
+    prompt: str = CHECKLIST_PROMPT.format(
+        location=location,
+        family_size=family_size,
+        special_needs=special_needs,
+        language=language,
+        language_name=language_name,
+    )
+
+    provider: GenAIProvider = get_genai_provider(provider_name)
+    raw_response: str = provider.generate(prompt)
+
+    try:
+        return extract_json_from_response(raw_response)
+    except json.JSONDecodeError:
+        logger.warning("GenAI returned unparseable response for checklist.")
+        return {
+            "title": f"Emergency Checklist for {location}",
+            "categories": [
+                {
+                    "name": "AI-Generated Items",
+                    "items": [{"task": raw_response, "priority": "high", "completed": False}],
+                }
+            ],
+        }
+
+
+def generate_alert(
+    location: str,
+    condition: str,
+    risk_level: str,
+    language: str,
+    provider_name: Optional[str] = None,
+) -> dict[str, Any]:
+    """
+    Generate a multilingual safety alert via real Gemini API.
+
+    Not cached because alerts should reflect real-time conditions.
+
+    Args:
+        location: Affected location.
+        condition: Current weather condition description.
+        risk_level: One of 'low', 'moderate', 'high', 'severe'.
+        language: ISO language code.
+        provider_name: Override the default provider.
+
+    Returns:
+        Parsed dictionary with alert information.
+    """
+    language_name: str = LANGUAGE_MAP.get(language, "English")
+    prompt: str = MULTILINGUAL_ALERT_PROMPT.format(
+        location=location,
+        condition=condition,
+        risk_level=risk_level,
+        language=language,
+        language_name=language_name,
+    )
+
+    provider: GenAIProvider = get_genai_provider(provider_name)
+    raw_response: str = provider.generate(prompt)
+
+    try:
+        return extract_json_from_response(raw_response)
+    except json.JSONDecodeError:
+        logger.warning("GenAI returned unparseable response for alert.")
+        return {
+            "alert_title": f"⚠️ Safety Alert — {location}",
+            "alert_body": raw_response,
+            "action_items": ["Follow local authority instructions"],
+            "language": language,
+        }

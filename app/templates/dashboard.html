@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — MonsoonGuard{% endblock %}
+
+{% block content %}
+
+<section class="section" style="padding-top: calc(var(--navbar-height) + var(--space-xl))">
+    <div class="text-center" style="margin-bottom: var(--space-xl)">
+        <h1 class="section-title" style="margin-bottom: var(--space-xs)">Your Monsoon Dashboard</h1>
+        <p class="hero__subtitle" style="font-size: 1rem">Generate plans, check weather, and stay prepared.</p>
+    </div>
+
+    <div class="demo__layout" style="grid-template-columns: 1fr;">
+        <!-- Plan Generator Card -->
+        <article class="glass-card">
+            <h2 class="glass-card__title">Preparedness Plan</h2>
+            <form id="dash-plan-form">
+                <div class="form-group">
+                    <label for="dash-location" class="form-label">Location</label>
+                    <input type="text" id="dash-location" name="location" class="form-input" placeholder="e.g. Mumbai" required>
+                </div>
+                <div class="form-group">
+                    <label for="dash-family-size" class="form-label">Family Size</label>
+                    <input type="number" id="dash-family-size" name="family_size" class="form-input" min="1" max="50" value="4" required>
+                </div>
+                <div class="form-group">
+                    <label for="dash-language" class="form-label">Language</label>
+                    <select id="dash-language" name="language" class="form-input">
+                        {% for code, name in languages.items() %}
+                        <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dash-needs" class="form-label">Special Needs (optional)</label>
+                    <input type="text" id="dash-needs" name="special_needs" class="form-input" placeholder="e.g. elderly member">
+                </div>
+                <button type="submit" class="btn btn--white btn--full">Generate Plan</button>
+            </form>
+            <div id="dash-plan-result" class="demo__result-content markdown" hidden></div>
+        </article>
+
+        <!-- Weather and Travel in a sub-grid -->
+        <div class="weather-check__grid">
+            <article class="glass-card">
+                <h2 class="glass-card__title">Live Weather</h2>
+                <form id="dash-weather-form">
+                    <div class="form-group">
+                        <label for="dash-weather-city" class="form-label">City</label>
+                        <input type="text" id="dash-weather-city" class="form-input" placeholder="e.g. Chennai" required>
+                    </div>
+                    <button type="submit" class="btn btn--white btn--full">Check Weather</button>
+                </form>
+                <div id="dash-weather-result" class="demo__result-content markdown" hidden></div>
+            </article>
+
+            <article class="glass-card">
+                <h2 class="glass-card__title">Travel Advisory</h2>
+                <form id="dash-travel-form">
+                    <div class="form-group">
+                        <label for="dash-travel-from" class="form-label">From</label>
+                        <input type="text" id="dash-travel-from" class="form-input" placeholder="e.g. Pune" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dash-travel-to" class="form-label">To</label>
+                        <input type="text" id="dash-travel-to" class="form-input" placeholder="e.g. Mumbai" required>
+                    </div>
+                    <button type="submit" class="btn btn--white btn--full">Check Route</button>
+                </form>
+                <div id="dash-travel-result" class="demo__result-content markdown" hidden></div>
+            </article>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

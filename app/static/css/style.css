@@ -1,0 +1,507 @@
+/* ================================================================= */
+/*  MonsoonGuard — Minimalist Glassmorphic Design System             */
+/*  Inspired by Sunrock reference design                             */
+/* ================================================================= */
+
+:root {
+    --color-white: #ffffff;
+    --color-black: #000000;
+    
+    /* Blues / Accents */
+    --color-accent: #0055ff;
+    --color-accent-hover: #0044cc;
+    --color-accent-light: #e6efff;
+
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-blur: 16px;
+    
+    --glass-dark-bg: rgba(0, 0, 0, 0.2);
+
+    /* Typography */
+    --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* Spacing & Layout */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+    --space-2xl: 5rem;
+    
+    --radius-pill: 999px;
+    --radius-card: 1.5rem;
+    
+    --container-max: 1400px;
+    --navbar-height: 80px;
+}
+
+/* ----------------------------------------------------------------- */
+/*  Reset & Base                                                     */
+/* ----------------------------------------------------------------- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--color-white);
+    background-color: #111; /* Fallback */
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Background image wrapper for the whole site or hero */
+.site-wrapper {
+    position: relative;
+    min-height: 100vh;
+    /* Use the generated background image */
+    background-image: url('../img/hero-bg.png');
+    background-size: cover;
+    background-position: center bottom;
+    background-attachment: fixed;
+}
+
+/* Dark overlay to make text readable */
+.site-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Content needs to sit above the pseudo-element overlay */
+.site-content {
+    position: relative;
+    z-index: 1;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* ----------------------------------------------------------------- */
+/*  Header & Navbar (Glassmorphic Pills)                             */
+/* ----------------------------------------------------------------- */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: var(--space-md) var(--space-xl);
+}
+
+.navbar__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--container-max);
+    margin: 0 auto;
+}
+
+.navbar__brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.navbar__logo svg {
+    display: none; /* Hide old logo, keep it text-based for minimal look */
+}
+
+/* Centered pill navigation */
+.navbar__links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+}
+
+.navbar__link {
+    padding: 8px 20px;
+    border-radius: var(--radius-pill);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar__link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.navbar__link--active {
+    background: var(--color-white);
+    color: var(--color-black);
+}
+
+.navbar__link--active:hover {
+    background: var(--color-white);
+}
+
+/* Right side actions */
+.navbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.navbar__cta {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    padding: 8px 24px;
+    border-radius: var(--radius-pill);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
+}
+
+.navbar__cta:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.navbar__lang {
+    font-size: 1.2rem;
+}
+
+.navbar__toggle {
+    display: none;
+}
+
+/* ----------------------------------------------------------------- */
+/*  Hero Section                                                     */
+/* ----------------------------------------------------------------- */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: calc(var(--navbar-height) + var(--space-2xl)) var(--space-xl) var(--space-xl);
+}
+
+.hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+    margin: 0 auto var(--space-md);
+    text-wrap: balance;
+}
+
+.hero__subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    font-weight: 400;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto var(--space-xl);
+}
+
+.hero__actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-2xl);
+}
+
+/* Main CTA Button */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 1.05rem;
+    padding: 8px 8px 8px 24px;
+    border-radius: var(--radius-pill);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+}
+
+.btn--white {
+    background: var(--color-white);
+    color: var(--color-black);
+}
+
+.btn--white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.btn__icon-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: var(--color-white);
+}
+
+.btn__icon-circle svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ----------------------------------------------------------------- */
+/*  Glassmorphic Bottom Cards (Hero Grid)                            */
+/* ----------------------------------------------------------------- */
+.hero__bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    max-width: var(--container-max);
+    width: 100%;
+    margin-top: auto; /* Pushes it to the bottom of the hero */
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-xl);
+    text-align: left;
+}
+
+.glass-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--color-white);
+    color: var(--color-accent);
+    border-radius: 12px;
+    margin-bottom: var(--space-md);
+}
+
+.glass-card__icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.glass-card__title {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: var(--space-sm);
+    letter-spacing: -0.02em;
+}
+
+.glass-card__text {
+    font-size: 1rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+
+/* ----------------------------------------------------------------- */
+/*  Other sections - minimal adaptations                             */
+/* ----------------------------------------------------------------- */
+.section {
+    padding: var(--space-2xl) var(--space-xl);
+    max-width: var(--container-max);
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin-bottom: var(--space-xl);
+    letter-spacing: -0.02em;
+}
+
+.text-center {
+    text-align: center;
+}
+
+
+/* Forms (Glassmorphic) */
+.form-group {
+    margin-bottom: var(--space-md);
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px;
+    background: var(--glass-dark-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--color-white);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-white);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Dashboard Forms container */
+.demo__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.demo__form, .demo__results, .weather-check__card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-xl);
+}
+
+.demo__results {
+    display: flex;
+    flex-direction: column;
+}
+
+.demo__result-content {
+    background: rgba(0,0,0,0.3);
+    padding: var(--space-md);
+    border-radius: 12px;
+    margin-top: var(--space-md);
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+/* Form Actions */
+.btn--full {
+    width: 100%;
+    margin-bottom: var(--space-sm);
+    justify-content: center;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.btn--outline {
+    background: transparent;
+    border: 1px solid var(--color-white);
+    color: var(--color-white);
+}
+
+.btn--outline:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Markdown render inside result */
+.markdown h1, .markdown h2, .markdown h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+}
+.markdown h1 { font-size: 1.8rem; }
+.markdown h2 { font-size: 1.4rem; }
+.markdown ul, .markdown ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1em;
+}
+.markdown p { margin-bottom: 1em; }
+
+/* Grid for weather check */
+.weather-check__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.weather-check__card-title {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-lg);
+    font-weight: 500;
+}
+
+/* ----------------------------------------------------------------- */
+/*  Responsive                                                       */
+/* ----------------------------------------------------------------- */
+@media (max-width: 992px) {
+    .hero__bottom-grid {
+        grid-template-columns: 1fr;
+    }
+    .demo__layout {
+        grid-template-columns: 1fr;
+    }
+    .weather-check__grid {
+        grid-template-columns: 1fr;
+    }
+    .navbar__links {
+        display: none; /* Hide on mobile for now */
+    }
+    .navbar__toggle {
+        display: block;
+        background: transparent;
+        border: none;
+        color: white;
+        cursor: pointer;
+    }
+    .navbar__toggle-bar {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: white;
+        margin: 5px 0;
+    }
+}

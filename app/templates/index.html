@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}MonsoonGuard — AI-Powered Monsoon Preparedness & Citizen Safety{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================= -->
+<!--  HERO SECTION                                                 -->
+<!-- ============================================================= -->
+<section class="hero" aria-labelledby="hero-heading">
+    <h1 id="hero-heading" class="hero__title">
+        Clean and smart monsoon safety for citizens.
+    </h1>
+    <p class="hero__subtitle">
+        Sustainable safety solutions made easy, reliable, and tailor-made for India.
+    </p>
+
+    <div class="hero__actions">
+        <a href="#demo-section" class="btn btn--white" aria-label="Get Started">
+            Let's Talk Preparedness
+            <span class="btn__icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </span>
+        </a>
+    </div>
+
+    <!-- Glassmorphic Feature Cards -->
+    <div class="hero__bottom-grid">
+        <article class="glass-card">
+            <div class="glass-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <h3 class="glass-card__title">Real-time alerts generated</h3>
+            <p class="glass-card__text">
+                Since 2024, we've generated over 946k real-time advisories for clean, sustainable safety. This milestone represents not just alerts, but a commitment to a safer, more resilient future.
+            </p>
+        </article>
+        
+        <article class="glass-card">
+            <h3 class="glass-card__title">Impact</h3>
+            <p class="glass-card__text">
+                Our AI-driven safety solutions currently benefit over 525,555 people. That's thousands of homes, businesses, and communities protected by intelligent preparedness.
+            </p>
+        </article>
+    </div>
+</section>
+
+<!-- ============================================================= -->
+<!--  DEMO SECTION (Glassmorphic Forms)                            -->
+<!-- ============================================================= -->
+<section class="section" id="demo-section" aria-labelledby="demo-heading">
+    <h2 id="demo-heading" class="section-title text-center">AI Preparedness Plans</h2>
+
+    <div class="demo__layout">
+        <!-- Form -->
+        <form class="demo__form" id="plan-form" novalidate>
+            <div class="form-group">
+                <label for="location" class="form-label">Your City / Region</label>
+                <input type="text" id="location" name="location" class="form-input" placeholder="e.g. Mumbai" required>
+            </div>
+
+            <div class="form-group">
+                <label for="family_size" class="form-label">Family Size</label>
+                <input type="number" id="family_size" name="family_size" class="form-input" min="1" max="50" value="4" required>
+            </div>
+
+            <div class="form-group">
+                <label for="special_needs" class="form-label">Special Needs (optional)</label>
+                <input type="text" id="special_needs" name="special_needs" class="form-input" placeholder="e.g. elderly member">
+            </div>
+
+            <div class="form-group">
+                <label for="language" class="form-label">Preferred Language</label>
+                <select id="language" name="language" class="form-input">
+                    {% for code, name in languages.items() %}
+                    <option value="{{ code }}" {% if code == 'en' %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn--white btn--full" id="generate-plan-btn">
+                Generate Preparedness Plan
+            </button>
+        </form>
+
+        <!-- Results -->
+        <div class="demo__results" id="results-panel">
+            <h3 class="glass-card__title">Your AI Output</h3>
+            <p class="glass-card__text" id="results-placeholder">Fill in the form to generate a plan.</p>
+            <div class="demo__result-content markdown" id="result-content" hidden></div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================= -->
+<!--  WEATHER SECTION                                              -->
+<!-- ============================================================= -->
+<section class="section" id="weather-section" aria-labelledby="weather-heading">
+    <h2 id="weather-heading" class="section-title">Safety Advisories</h2>
+
+    <div class="weather-check__grid">
+        <div class="weather-check__card">
+            <h3 class="weather-check__card-title">Check City Weather</h3>
+            <form id="weather-form">
+                <div class="form-group">
+                    <label for="weather-location" class="form-label">City Name</label>
+                    <input type="text" id="weather-location" class="form-input" placeholder="e.g. Mumbai" required>
+                </div>
+                <button type="submit" class="btn btn--white btn--full">Check Weather</button>
+            </form>
+            <div id="weather-result" class="demo__result-content markdown" hidden></div>
+        </div>
+
+        <div class="weather-check__card">
+            <h3 class="weather-check__card-title">Route Safety</h3>
+            <form id="travel-form">
+                <div class="form-group">
+                    <label for="travel-origin" class="form-label">From</label>
+                    <input type="text" id="travel-origin" class="form-input" placeholder="e.g. Pune" required>
+                </div>
+                <div class="form-group">
+                    <label for="travel-destination" class="form-label">To</label>
+                    <input type="text" id="travel-destination" class="form-input" placeholder="e.g. Mumbai" required>
+                </div>
+                <button type="submit" class="btn btn--white btn--full">Check Travel Safety</button>
+            </form>
+            <div id="travel-result" class="demo__result-content markdown" hidden></div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
